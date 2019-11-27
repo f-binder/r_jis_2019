@@ -1,3 +1,28 @@
+# Workshop: R para análisis de Datos -----------
+# Jornadas de Informática en Salud
+# Fernando Binder - 29/11/2019
+
+  # Introducción: Instalar paquetes necesarios =================
+install.packages(c("tidyverse", "lubridate", "forcats"))
+
+  # Objetos: variables, vectores y data.frames =========
+# Variables y comando para asignar
+a <- 5
+b <- 3
+
+a
+
+a + b
+a / b
+
+# Vectores. Clases que veremos en este taller: numeric, character, logical
+# Creación de vectores con función "concatenar" c()
+v1 <- c("Lucia", "Rocamadour", "Ronald", "Babs")
+v2 <- c(1, 3, 5, 7, 9)
+v3 <- c(TRUE, FALSE, FALSE)
+
+class(v3)
+
 # Acceder a Elementos de un vector
 vect <- c(3,3,4,5,9)
 vect
@@ -12,7 +37,33 @@ vect[c(FALSE, FALSE, FALSE, FALSE, FALSE)]
 vect[vect == 3]  # accede a elementos que cumplen la condición
 vect[vect > 4]
 
-# Análisis de datos: Base de consultorio de diabetes ==================
+# Acceder a elementos de una tabla (usaremos un objeto tipo data.frame)
+
+base1 <- data.frame(columna1 = c(3, 3, 2, 3, 3),
+                    columna2 = c("m", "f", "f", "f", "f"),
+                    columna3 = c(2013, 2014, 2015, 2016, 2017),
+                    stringsAsFactors = F)
+
+  # Acceder una columna o variable: $
+base1
+base1$columna1
+
+  # Acceder a subsets del data.frame usando [ , ]
+base1[3, ]  # código que accesa la 3era fila de la tabla
+base1[, 2:3]  # 2nda y 3ra columna de la tabla
+base1[base1$columna3 > 2014, ]  # Filas que cumplan con la condición
+base1[base1$columna3 > 2014 & base1$columna1 == 3, ]
+
+  # Seleccionar subsets de una tabla usando dplyr y pipes %>%
+library(dplyr)
+base1
+base1 %>% select(1,3)
+base1 %>% filter(columna3 > 2015)
+
+base1 %>% filter(columna3 > 2014) %>% select(columna1, columna3)
+
+
+  # Análisis de datos: Base de consultorio de diabetes ==================
 # Cargar paquetes necesarios
 library(dplyr)
 library(ggplot2)
@@ -30,7 +81,7 @@ summary(consult)
 
 # Modificar clases de variables: fechas ---------
 consult$hora_presente
-ymd_hms(consult$hora_presente)
+lubridate::ymd_hms(consult$hora_presente)
 consult$hora_presente <- ymd_hms(consult$hora_presente)
 
 consult$hora_atencion
@@ -38,8 +89,7 @@ consult$hora_atencion <- ymd_hms(consult$hora_atencion)
 
 head(consult)
 
-# Crear variables ------------
-# Usaremos dplyr y pipes:
+# Crear variables: usando dplyr (pipes), función mutate ------------
 # Variable nuliparidad:
 
 consult %>% mutate(nulipar = ifelse(embarazos > 0, 0, 1)) %>% 
@@ -52,11 +102,16 @@ consult %>% mutate(espera = difftime(hora_atencion, hora_presente, units = "mins
 
 consult <- consult %>% mutate(espera = difftime(hora_atencion, hora_presente, units = "mins"))
 
+# Variable "semana del año"
+consult %>% mutate(semana = week(hora_presente))
+
+consult <- consult %>% mutate(semana = week(hora_presente))
+
 # Análisis Descriptivo ============
 str(consult)
 summary(consult)
 
-# Variable embarazos: formas de resumir
+  # Variable embarazos ---------
 summary(consult$embarazos)   # no es lo más apropiado para variable cuantitativa discreta
 
 table(consult$embarazos) %>% addmargins()
@@ -65,21 +120,35 @@ consult %>% group_by(embarazos) %>% summarise(n = n(), prop = n()/nrow(consult))
 
 fct_count(factor(consult$embarazos), prop = TRUE) %>% arrange(-n)
 
-# Variable glucemia
+  # Variables tiempos de espera --------
+summary(consult$espera)
+summary(as.numeric(consult$espera))
+
+# tiempos de espera: boxplot por semana del año (paquete ggplot2)
+names(consult)
+
+library(ggplot2)
+consult %>% ggplot(aes(x = semana, y = espera)) +
+   geom_boxplot(aes(group = semana)) +
+   labs(y = "Espera a la atención médica (mins)",
+        x = "Semana del año") +
+   theme_minimal()
+
+
+  # Variable glucemia ------------
 summary(consult$glucemia)
 
-
-# Gráficos
-consult %>% ggplot(aes(x = glucemia)) +
-   geom_histogram(aes(fill = factor(ifelse(consult$embarazos > 0, 1, 0))),
-                  bins = 30, position = "dodge")
+# Gráficos con paquete ggplot2
+  # ggplot(aes(x = ..., y = ...))  define los ejes del gráfico
+consult %>% ggplot(aes(x = glucemia, fill = factor(nulipar))) +
+   geom_histogram(bins = 30, position = "dodge")
 
 consult %>% ggplot(aes(x = glucemia, group = nulipar)) +
    geom_density(aes(fill = factor(nulipar)), position = "dodge", alpha = 0.4)
 
 consult %>% ggplot(aes(x = nulipar, y = glucemia, group = nulipar)) +
-   geom_boxplot() +
-   geom_jitter(color = "darkred", alpha = 0.3, width = 0.2) +
+   geom_boxplot(aes(fill = nulipar), alpha = 0.8) +
+   geom_jitter(color = "darkslategray", alpha = 0.3, width = 0.2) +
    geom_hline(yintercept = mean(consult$glucemia), linetype = "dotted", size = 1.5) +
    theme_bw() +
    labs(x = "Paridad (sí/no)", y = "Glucemia (mg/dL)")
@@ -89,5 +158,4 @@ consult %>% ggplot(aes(x = nulipar, y = glucemia, group = nulipar)) +
 t.test(glucemia ~ nulipar, data = consult)        # t-test
 wilcox.test(glucemia ~ nulipar, data = consult)   # Mann-Whitney-Wilcoxon Test
 
-
-
+# Fin de Workshop R DIS
