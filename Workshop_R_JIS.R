@@ -3,7 +3,7 @@
 # Fernando Binder - 29/11/2019
 
   # Introducción: Instalar paquetes necesarios =================
-install.packages(c("tidyverse", "lubridate", "forcats"))
+install.packages(c("tidyverse", "lubridate", "forcats", "ggplot2"))
 
   # Objetos: variables, vectores y data.frames =========
 # Variables y comando para asignar
