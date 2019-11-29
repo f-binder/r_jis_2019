@@ -100,7 +100,7 @@ head(consult)
 # Variable nuliparidad (nuligesta):
 
 consult %>% mutate(nuligest = ifelse(embarazos > 0, 0, 1)) %>% 
-   select(embarazos, nuligest) #%>% table()
+   select(embarazos, nuligest) %>% table()
 
 consult <- consult %>% mutate(nuligest = ifelse(embarazos > 0, 0, 1))
 
@@ -143,7 +143,7 @@ consult %>% ggplot(aes(x = semana, y = espera)) +
    geom_boxplot(aes(group = semana))
 
 consult %>% ggplot(aes(x = semana, y = espera)) +
-   geom_boxplot(aes(group = semana), fill = "coral", alpha = 0.5) +
+   geom_boxplot(aes(group = semana), fill = "darkcyan", alpha = 0.5) +
    labs(y = "Espera a la atención médica (mins)",
         x = "Semana del año") +
    theme_minimal() +
@@ -155,6 +155,12 @@ summary(consult$glucemia)
 
 # Gráficos con paquete ggplot2
   # ggplot(aes(x = ..., y = ...))  define los ejes del gráfico
+consult %>% ggplot(aes(x = glucemia)) +
+   geom_histogram()
+
+consult[consult$glucemia != 0, ] %>% ggplot(aes(x = glucemia)) +
+   geom_density(stat = "count")
+
 consult %>% ggplot(aes(x = glucemia, fill = factor(nuligest))) +
    geom_histogram(bins = 30, position = "dodge")
 
