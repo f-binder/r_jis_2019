@@ -158,14 +158,43 @@ summary(consult$glucemia)
 consult %>% ggplot(aes(x = glucemia)) +
    geom_histogram()
 
+  # Filtrar glucemias = 0 (errores de carga)
+consult %>% filter(glucemia != 0) %>%
+   ggplot(aes(x = glucemia)) +
+   geom_histogram()
+
+consult[consult$glucemia != 0, ] %>%
+   ggplot(aes(x = glucemia)) +
+   geom_histogram()
+
+   # Density plot
 consult[consult$glucemia != 0, ] %>% ggplot(aes(x = glucemia)) +
    geom_density(stat = "count")
 
-consult %>% ggplot(aes(x = glucemia, fill = factor(nuligest))) +
-   geom_histogram(bins = 30, position = "dodge")
+   # Agrupado por paridad (nuligestas vs madres)
+consult %>% filter(glucemia != 0) %>%
+   ggplot(aes(x = glucemia, fill = factor(nuligest))) +
+   geom_histogram(position = "dodge")
 
-consult %>% ggplot(aes(x = glucemia, group = nuligest)) +
-   geom_density(aes(fill = factor(nuligest)), position = "dodge", alpha = 0.4)
+consult %>% filter(glucemia != 0) %>%
+   ggplot(aes(x = glucemia)) +
+   geom_density(aes(fill = factor(nuligest)), position = "dodge", alpha = 0.3) +
+   scale_fill_manual(name = "Gestas",
+                     values = c("darkcyan", "coral"),
+                     labels = c("1 ó más Embarazos", "Sin historia de embarazos")) +
+   theme_minimal() +
+   labs(x = "Glucemia (mg/dL)", y = "") +
+   theme(axis.text.y = element_blank()) +
+   geom_vline(xintercept = mean(consult$glucemia[consult$glucemia !=0 & consult$nuligest == 1]),
+              linetype = "dotted", size = 1.2, alpha = 0.7,
+              color = "brown3") +
+   geom_vline(xintercept = 
+                 mean(consult$glucemia[consult$glucemia !=0 & consult$nuligest == 0]),
+              linetype = "dotted", size = 1.2, color = "darkcyan",
+              alpha = 0.7)
+
+
+
 
 consult %>% ggplot(aes(x = nuligest, y = glucemia, group = nuligest)) +
    geom_boxplot(aes(fill = nuligest), alpha = 0.8) +
@@ -176,7 +205,11 @@ consult %>% ggplot(aes(x = nuligest, y = glucemia, group = nuligest)) +
 
 
 # Analítico: comparacion de glucemias entre nulíparas y madres --------
+consult %>% group_by(nuligest) %>%
+   summarise("Glucemia Promedio" = mean(glucemia),
+             "Glucemia Máxima" = max(glucemia))
+
 t.test(glucemia ~ nuligest, data = consult)        # t-test
-wilcox.test(glucemia ~ nuligest, data = consult)   # Mann-Whitney-Wilcoxon Test
+wilcox.test(glucemia ~ nuligest, data = consult[consult$glucemia !=0,])   # Mann-Whitney-Wilcoxon Test
 
 # Fin de Workshop R DIS
