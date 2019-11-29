@@ -97,12 +97,12 @@ consult$hora_atencion <- ymd_hms(consult$hora_atencion)
 head(consult)
 
 # Crear variables: usando dplyr (pipes), función mutate ------------
-# Variable nuliparidad:
+# Variable nuliparidad (nuligesta):
 
-consult %>% mutate(nulipar = ifelse(embarazos > 0, 0, 1)) %>% 
-   select(embarazos, nulipar) #%>% table()
+consult %>% mutate(nuligest = ifelse(embarazos > 0, 0, 1)) %>% 
+   select(embarazos, nuligest) #%>% table()
 
-consult <- consult %>% mutate(nulipar = ifelse(embarazos > 0, 0, 1))
+consult <- consult %>% mutate(nuligest = ifelse(embarazos > 0, 0, 1))
 
 # Variable "minutos de espera":
 consult %>% mutate(espera = difftime(hora_atencion,
@@ -155,14 +155,14 @@ summary(consult$glucemia)
 
 # Gráficos con paquete ggplot2
   # ggplot(aes(x = ..., y = ...))  define los ejes del gráfico
-consult %>% ggplot(aes(x = glucemia, fill = factor(nulipar))) +
+consult %>% ggplot(aes(x = glucemia, fill = factor(nuligest))) +
    geom_histogram(bins = 30, position = "dodge")
 
-consult %>% ggplot(aes(x = glucemia, group = nulipar)) +
-   geom_density(aes(fill = factor(nulipar)), position = "dodge", alpha = 0.4)
+consult %>% ggplot(aes(x = glucemia, group = nuligest)) +
+   geom_density(aes(fill = factor(nuligest)), position = "dodge", alpha = 0.4)
 
-consult %>% ggplot(aes(x = nulipar, y = glucemia, group = nulipar)) +
-   geom_boxplot(aes(fill = nulipar), alpha = 0.8) +
+consult %>% ggplot(aes(x = nuligest, y = glucemia, group = nuligest)) +
+   geom_boxplot(aes(fill = nuligest), alpha = 0.8) +
    geom_jitter(color = "darkslategray", alpha = 0.3, width = 0.2) +
    geom_hline(yintercept = mean(consult$glucemia), linetype = "dotted", size = 1.5) +
    theme_bw() +
@@ -170,7 +170,7 @@ consult %>% ggplot(aes(x = nulipar, y = glucemia, group = nulipar)) +
 
 
 # Analítico: comparacion de glucemias entre nulíparas y madres --------
-t.test(glucemia ~ nulipar, data = consult)        # t-test
-wilcox.test(glucemia ~ nulipar, data = consult)   # Mann-Whitney-Wilcoxon Test
+t.test(glucemia ~ nuligest, data = consult)        # t-test
+wilcox.test(glucemia ~ nuligest, data = consult)   # Mann-Whitney-Wilcoxon Test
 
 # Fin de Workshop R DIS
