@@ -17,8 +17,8 @@ a / b
 
 # Vectores. Clases que veremos en este taller: numeric, character, logical
 # Creación de vectores con función "concatenar" c()
-v1 <- c("Lucia", "Rocamadour", "Ronald", "Babs")
-v2 <- c(1, 3, 5, 7, 9)
+v1 <- c(1, 3, 5, 7, 9)
+v2 <- c("Lucia", "Rocamadour", "Ronald", "Babs")
 v3 <- c(TRUE, FALSE, FALSE)
 
 class(v3)
@@ -46,7 +46,14 @@ base1 <- data.frame(columna1 = c(3, 3, 2, 3, 3),
 
   # Acceder una columna o variable: $
 base1
-base1$columna1
+base1$columna1    # en R "base" (sin usar dplyr), se accede así a variables
+
+  # Operaciones con una variable de una tabla:
+base1
+mean(base1$columna1)
+max(base1$columna3)
+table(base1$columna2)
+
 
   # Acceder a subsets del data.frame usando [ , ]
 base1[3, ]  # código que accesa la 3era fila de la tabla
@@ -93,17 +100,21 @@ head(consult)
 # Variable nuliparidad:
 
 consult %>% mutate(nulipar = ifelse(embarazos > 0, 0, 1)) %>% 
-   select(embarazos, nulipar) %>% table()
+   select(embarazos, nulipar) #%>% table()
 
 consult <- consult %>% mutate(nulipar = ifelse(embarazos > 0, 0, 1))
 
 # Variable "minutos de espera":
-consult %>% mutate(espera = difftime(hora_atencion, hora_presente, units = "mins")) %>% head()
+consult %>% mutate(espera = difftime(hora_atencion,
+                                     hora_presente,
+                                     units = "mins")) %>% head()
 
-consult <- consult %>% mutate(espera = difftime(hora_atencion, hora_presente, units = "mins"))
+consult <- consult %>% mutate(espera = difftime(hora_atencion,
+                                                hora_presente,
+                                                units = "mins"))
 
 # Variable "semana del año"
-consult %>% mutate(semana = week(hora_presente))
+consult %>% mutate(semana = week(hora_presente)) %>% head()
 
 consult <- consult %>% mutate(semana = week(hora_presente))
 
@@ -129,10 +140,14 @@ names(consult)
 
 library(ggplot2)
 consult %>% ggplot(aes(x = semana, y = espera)) +
-   geom_boxplot(aes(group = semana)) +
+   geom_boxplot(aes(group = semana))
+
+consult %>% ggplot(aes(x = semana, y = espera)) +
+   geom_boxplot(aes(group = semana), fill = "coral", alpha = 0.5) +
    labs(y = "Espera a la atención médica (mins)",
         x = "Semana del año") +
-   theme_minimal()
+   theme_minimal() +
+   theme(axis.title = element_text(size = 14))
 
 
   # Variable glucemia ------------
