@@ -1,6 +1,6 @@
 # Workshop: R para análisis de Datos -----------
 # Jornadas de Informática en Salud
-# Fernando Binder - 29/11/2019
+# Fernando Binder - 29/Nov/2019
 
   # Introducción: Instalar paquetes necesarios =================
 install.packages(c("tidyverse", "lubridate", "forcats", "ggplot2"))
